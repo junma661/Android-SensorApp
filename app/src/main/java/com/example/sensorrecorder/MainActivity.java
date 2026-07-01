@@ -1,3 +1,10 @@
+package com.example.sensorrecorder;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
+
 public class MainActivity extends AppCompatActivity {
     private TextView tvStatus, tvLight, tvTemp;
     private Button btnStart, btnStop, btnHistory, btnSetting;
@@ -9,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
         bindView();
     }
 
+    // 绑定页面所有控件
     private void bindView() {
         tvStatus = findViewById(R.id.tv_status);
         tvLight = findViewById(R.id.tv_light);
