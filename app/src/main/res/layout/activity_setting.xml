@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="30dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="26sp"
+        android:text="采样周期设置(毫秒)"/>
+
+    <EditText
+        android:id="@+id/et_interval"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="默认1000，最小200"
+        android:inputType="number"
+        android:layout_marginTop="20dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="26sp"
+        android:layout_marginTop="24dp"
+        android:text="光线告警阈值(lx)"/>
+
+    <EditText
+        android:id="@+id/et_threshold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="默认1000"
+        android:inputType="number"
+        android:layout_marginTop="20dp"/>
+
+    <CheckBox
+        android:id="@+id/cb_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="允许后台持续采集存入数据库"
+        android:checked="true"
+        android:layout_marginTop="24dp"/>
+
+    <Button
+        android:id="@+id/btn_save"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:text="保存设置"
+        android:background="#2176D2"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="30dp"/>
+
+    <Button
+        android:id="@+id/btn_back"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:text="返回"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>

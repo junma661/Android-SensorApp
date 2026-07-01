@@ -2,48 +2,96 @@ package com.example.sensorrecorder;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.database.Cursor;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DBManager {
+    public class SensorRecord {
+        String time;
+        String type;
+        float value;
+
+        public SensorRecord(String t, String ty, float v) {
+            time = t;
+            type = ty;
+            value = v;
+        }
+    }
+
+    private static final String DB_NAME = "sensor_db";
+    private static final int DB_VERSION = 1;
+    private static final String TABLE_DATA = "sensor_data";
+    private static final String COL_ID = "id";
+    private static final String COL_TIME = "record_time";
+    private static final String COL_TYPE = "sensor_type";
+    private static final String COL_VAL = "sensor_value";
+
     private DBHelper helper;
     private SQLiteDatabase db;
 
-    public DBManager(Context context) {
-        helper = new DBHelper(context);
+    private class DBHelper extends SQLiteOpenHelper {
+        public DBHelper(Context ctx) {
+            super(ctx, DB_NAME, null, DB_VERSION);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            String createSql = "CREATE TABLE " + TABLE_DATA + " (" +
+                    COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    COL_TIME + " TEXT," +
+                    COL_TYPE + " TEXT," +
+                    COL_VAL + " REAL)";
+            db.execSQL(createSql);
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {}
+
+        @Override
+        public void onDowngrade(SQLiteDatabase db, int oldV, int newV) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
+            onCreate(db);
+        }
+    }
+
+    public DBManager(Context ctx) {
+        helper = new DBHelper(ctx);
+    }
+
+    public void insertData(String time, String type, float val) {
         db = helper.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_TIME, time);
+        cv.put(COL_TYPE, type);
+        cv.put(COL_VAL, val);
+        db.insert(TABLE_DATA, null, cv);
+        db.close();
     }
 
-    // 插入一条传感器记录
-    public long insertRecord(SensorRecord record) {
-        ContentValues values = new ContentValues();
-        values.put("light", record.getLight());
-        values.put("temp", record.getTemp());
-        values.put("time", record.getTime());
-        return db.insert("record", null, values);
-    }
-
-    // 查询所有历史数据
-    public List<SensorRecord> queryAllRecord() {
+    public List<SensorRecord> queryAll() {
         List<SensorRecord> list = new ArrayList<>();
-        Cursor cursor = db.query("record", null, null, null, null, null, "time DESC");
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(0);
-                float light = cursor.getFloat(1);
-                float temp = cursor.getFloat(2);
-                long time = cursor.getLong(3);
-                list.add(new SensorRecord(id, light, temp, time));
-            } while (cursor.moveToNext());
+        db = helper.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_DATA, null, null, null, null, null, COL_ID + " DESC");
+        int idxTime = cursor.getColumnIndex(COL_TIME);
+        int idxType = cursor.getColumnIndex(COL_TYPE);
+        int idxVal = cursor.getColumnIndex(COL_VAL);
+        while (cursor.moveToNext()) {
+            String t = cursor.getString(idxTime);
+            String ty = cursor.getString(idxType);
+            float v = cursor.getFloat(idxVal);
+            list.add(new SensorRecord(t, ty, v));
         }
         cursor.close();
+        db.close();
         return list;
     }
 
-    // 关闭数据库
-    public void closeDB() {
-        if (db != null) db.close();
+    public void clearAll() {
+        db = helper.getWritableDatabase();
+        db.delete(TABLE_DATA, null, null);
+        db.close();
     }
 }
