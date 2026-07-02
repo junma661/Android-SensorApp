@@ -22,10 +22,10 @@
 - ✅ 前台服务常驻通知，提升后台采集保活优先级
 
 ## 四、运行截图
-![首页界面](screenshot/zhujiemian.png)
-![设置界面](screenshot/shezhijiemian.png)
-![历史数据界面](screenshot/lishishuju.png)
-![历史数据导出界面](screenshot/lishishuludaochu.jpg)
+![首页界面](zhujiemian.png)
+![设置界面](shezhijiemian.png)
+![历史数据界面](lishishuju.png)
+![历史数据导出界面](lishishuludaochu.jpg)
 
 ## 五、APK 下载地址
 https://github.com/junma661/Android-SensorApp
