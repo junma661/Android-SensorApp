@@ -12,6 +12,13 @@
         android:textSize="22sp"
         android:layout_gravity="center_horizontal"/>
 
+    <!-- 新增筛选下拉框 -->
+    <Spinner
+        android:id="@+id/sp_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="10dp"/>
+
     <ListView
         android:id="@+id/lv_data"
         android:layout_width="match_parent"

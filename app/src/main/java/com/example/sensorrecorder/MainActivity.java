@@ -1,17 +1,20 @@
 package com.example.sensorrecorder;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tvStatus, tvLight, tvTemp;
@@ -47,9 +50,17 @@ public class MainActivity extends AppCompatActivity {
         dbManager = new DBManager(this);
         bindService(new Intent(this, SensorCollectService.class), conn, Context.BIND_AUTO_CREATE);
 
+        // 动态注册电量广播接收器
         batteryReceiver = new BatteryReceiver();
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(batteryReceiver, filter);
+
+        // ========== 新增：申请通知权限（Android13+ 用于光线超限告警通知） ==========
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    100);
+        }
     }
 
     private void startRefresh() {
