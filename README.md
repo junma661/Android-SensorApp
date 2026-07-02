@@ -29,4 +29,5 @@
 
 ## 五、APK 下载地址
 https://github.com/junma661/Android-SensorApp
-
+六。实验报告
+完整实验报告存放路径：/report/实验报告周嘉骏23110403012.pdf
