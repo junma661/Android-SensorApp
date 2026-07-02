@@ -1,46 +1,37 @@
 package com.example.sensorrecorder;
 
-import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView tvState, tvLight, tvTemp;
-    private SensorCollectService service;
+    private TextView tvStatus, tvLight, tvTemp;
+    private Button btnStart, btnStop, btnHistory, btnSetting;
+    private DBManager dbManager;
+    private SensorCollectService collectService;
     private boolean isBind = false;
-    private Handler uiHandler;
-    private static final long UI_REFRESH_DELAY = 300; // 300ms主动拉取刷新
-    private final Runnable uiRefreshTask = new Runnable() {
-        @Override
-        public void run() {
-            if (isBind && service.isCollecting()) {
-                float light = service.getCurLight();
-                float temp = service.getCurTemp();
-                tvLight.setText("光线传感器：" + light + " lx");
-                tvTemp.setText("温度传感器：" + temp + " ℃");
-            }
-            // 循环300ms刷新
-            uiHandler.postDelayed(this, UI_REFRESH_DELAY);
-        }
-    };
+    private BatteryReceiver batteryReceiver;
+    private Thread refreshThread;
+    // 新增标记：页面前台存活
+    private boolean isActive = false;
 
-    private ServiceConnection conn = new ServiceConnection() {
+    private final ServiceConnection conn = new ServiceConnection() {
         @Override
-        public void onServiceConnected(ComponentName name, IBinder binder) {
-            SensorCollectService.MyBinder b = (SensorCollectService.MyBinder) binder;
-            service = b.getService();
-            service.setMainActivity(MainActivity.this);
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            SensorCollectService.MyBinder binder = (SensorCollectService.MyBinder) service;
+            collectService = binder.getService();
             isBind = true;
-            // 绑定成功后启动定时刷新
-            uiHandler.post(uiRefreshTask);
+            // 绑定成功立刻启动刷新
+            if(isActive) startRefresh();
         }
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -52,32 +43,54 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        uiHandler = new Handler();
-        tvState = findViewById(R.id.tv_state);
+        bindView();
+        dbManager = new DBManager(this);
+        bindService(new Intent(this, SensorCollectService.class), conn, Context.BIND_AUTO_CREATE);
+
+        batteryReceiver = new BatteryReceiver();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryReceiver, filter);
+    }
+
+    private void startRefresh() {
+        if (refreshThread != null && refreshThread.isAlive()) return;
+        refreshThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted() && isBind && collectService != null && isActive) {
+                runOnUiThread(() -> {
+                    float light = collectService.getCurLight();
+                    float temp = collectService.getCurTemp();
+                    tvLight.setText("光线传感器：" + light + " lx");
+                    tvTemp.setText("温度传感器：" + temp + " ℃");
+                });
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        });
+        refreshThread.start();
+    }
+
+    private void bindView() {
+        tvStatus = findViewById(R.id.tv_status);
         tvLight = findViewById(R.id.tv_light);
         tvTemp = findViewById(R.id.tv_temp);
-
-        Button btnStart = findViewById(R.id.btn_start);
-        Button btnStop = findViewById(R.id.btn_stop);
-        Button btnHistory = findViewById(R.id.btn_history);
-        Button btnSetting = findViewById(R.id.btn_setting);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
-        }
-
-        bindService(new Intent(this, SensorCollectService.class), conn, BIND_AUTO_CREATE);
+        btnStart = findViewById(R.id.btn_start);
+        btnStop = findViewById(R.id.btn_stop);
+        btnHistory = findViewById(R.id.btn_history);
+        btnSetting = findViewById(R.id.btn_setting);
 
         btnStart.setOnClickListener(v -> {
-            if (isBind) {
-                service.startCollect();
-                tvState.setText("采集状态：已开启");
+            if (isBind && collectService != null) {
+                collectService.startCollect();
+                tvStatus.setText("采集状态：后台服务正在采集");
             }
         });
         btnStop.setOnClickListener(v -> {
-            if (isBind) {
-                service.stopCollect();
-                tvState.setText("采集状态：已停止");
+            if (isBind && collectService != null) {
+                collectService.stopCollect();
+                tvStatus.setText("采集状态：未开启");
             }
         });
         btnHistory.setOnClickListener(v -> startActivity(new Intent(this, DataListActivity.class)));
@@ -85,24 +98,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        // 页面暂停停止刷新，节省性能
-        uiHandler.removeCallbacks(uiRefreshTask);
+    protected void onResume() {
+        super.onResume();
+        isActive = true;
+        startRefresh();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (isBind) {
-            uiHandler.post(uiRefreshTask);
+    protected void onStop() {
+        super.onStop();
+        isActive = false;
+        if (refreshThread != null) {
+            refreshThread.interrupt();
+            refreshThread = null;
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        uiHandler.removeCallbacks(uiRefreshTask);
+        isActive = false;
+        if (refreshThread != null) refreshThread.interrupt();
         if (isBind) unbindService(conn);
+        if (batteryReceiver != null) unregisterReceiver(batteryReceiver);
+        dbManager.close();
     }
 }

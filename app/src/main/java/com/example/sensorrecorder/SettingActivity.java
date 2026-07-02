@@ -1,80 +1,53 @@
 package com.example.sensorrecorder;
 
-import android.content.ComponentName;
+import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 
 public class SettingActivity extends AppCompatActivity {
-    private EditText etInterval, etThreshold;
-    private CheckBox cbSaveDb;
-    private SensorCollectService service;
-    private boolean isBind = false;
-
-    private ServiceConnection conn = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder binder) {
-            SensorCollectService.MyBinder b = (SensorCollectService.MyBinder) binder;
-            service = b.getService();
-            isBind = true;
-        }
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            isBind = false;
-        }
-    };
+    private EditText etPeriod;
+    private SharedPreferences sp;
+    private static final String SP_NAME = "sensor_setting";
+    private static final String KEY_PERIOD = "sample_period";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
-        etInterval = findViewById(R.id.et_interval);
-        etThreshold = findViewById(R.id.et_threshold);
-        cbSaveDb = findViewById(R.id.cb_save);
-        Button btnSave = findViewById(R.id.btn_save);
-        Button btnBack = findViewById(R.id.btn_back);
+        etPeriod = findViewById(R.id.et_period);
+        Button btnSave = findViewById(R.id.btn_save_setting);
+        Button btnBack = findViewById(R.id.btn_back_main);
 
-        bindService(new Intent(this, SensorCollectService.class), conn, BIND_AUTO_CREATE);
+        sp = getSharedPreferences(SP_NAME, MODE_PRIVATE);
+        // 读取上次保存的周期，默认1000毫秒
+        long defaultPeriod = sp.getLong(KEY_PERIOD, 1000);
+        etPeriod.setText(String.valueOf(defaultPeriod));
 
+        // 保存配置
         btnSave.setOnClickListener(v -> {
-            String intervalText = etInterval.getText().toString().trim();
-            String thresholdText = etThreshold.getText().toString().trim();
-            boolean allowSave = cbSaveDb.isChecked();
-            long interval;
-            int threshold;
+            String text = etPeriod.getText().toString();
+            long period;
             try {
-                interval = Long.parseLong(intervalText);
-                threshold = Integer.parseInt(thresholdText);
-                if (interval < 200) {
-                    Toast.makeText(SettingActivity.this, "采样间隔不能小于200毫秒", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (threshold <= 0) {
-                    Toast.makeText(SettingActivity.this, "阈值必须大于0", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (isBind) {
-                    service.setConfig(interval, threshold, allowSave);
-                    Toast.makeText(SettingActivity.this, "设置保存成功", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
+                period = Long.parseLong(text);
             } catch (Exception e) {
-                Toast.makeText(SettingActivity.this, "请输入合法数字", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "请输入合法数字", Toast.LENGTH_SHORT).show();
+                return;
             }
+            sp.edit()
+                    .putLong(KEY_PERIOD, period)
+                    .apply();
+            Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
         });
 
-        btnBack.setOnClickListener(v -> finish());
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (isBind) unbindService(conn);
+        // 返回主页面
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(SettingActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
 }

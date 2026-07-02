@@ -1,24 +1,38 @@
 package com.example.sensorrecorder;
 
-import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.ListView;
+import java.util.List;
 
 public class DataListActivity extends AppCompatActivity {
+    private ListView lvData;
+    private DBManager dbManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_data_list2);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        setContentView(R.layout.activity_data_list);
+        lvData = findViewById(R.id.lv_data);
+        Button btnBack = findViewById(R.id.btn_back_main);
+        dbManager = new DBManager(this);
+
+        List<SensorData> allData = dbManager.queryAll();
+        SensorDataAdapter adapter = new SensorDataAdapter(this, allData);
+        lvData.setAdapter(adapter);
+
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(DataListActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbManager.close();
     }
 }

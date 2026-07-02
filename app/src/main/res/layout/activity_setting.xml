@@ -3,59 +3,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="30dp">
+    android:padding="20dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="26sp"
-        android:text="采样周期设置(毫秒)"/>
+        android:text="设置采样周期(毫秒)"
+        android:textSize="20sp"/>
 
     <EditText
-        android:id="@+id/et_interval"
+        android:id="@+id/et_period"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="默认1000，最小200"
-        android:inputType="number"
-        android:layout_marginTop="20dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="26sp"
-        android:layout_marginTop="24dp"
-        android:text="光线告警阈值(lx)"/>
-
-    <EditText
-        android:id="@+id/et_threshold"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="默认1000"
-        android:inputType="number"
-        android:layout_marginTop="20dp"/>
-
-    <CheckBox
-        android:id="@+id/cb_save"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="允许后台持续采集存入数据库"
-        android:checked="true"
-        android:layout_marginTop="24dp"/>
+        android:layout_height="56dp"
+        android:hint="默认1000，输入数字"
+        android:inputType="number"/>
 
     <Button
-        android:id="@+id/btn_save"
+        android:id="@+id/btn_save_setting"
         android:layout_width="match_parent"
-        android:layout_height="65dp"
+        android:layout_height="wrap_content"
         android:text="保存设置"
-        android:background="#2176D2"
-        android:textColor="#FFFFFF"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="15dp"/>
 
     <Button
-        android:id="@+id/btn_back"
+        android:id="@+id/btn_back_main"
         android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:text="返回"
-        android:layout_marginTop="16dp"/>
-
+        android:layout_height="wrap_content"
+        android:text="返回采集页面"
+        android:layout_marginTop="10dp"/>
 </LinearLayout>

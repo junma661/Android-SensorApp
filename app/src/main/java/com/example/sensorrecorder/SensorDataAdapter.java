@@ -8,26 +8,37 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import java.util.List;
 
-public class SensorDataAdapter extends ArrayAdapter<DBManager.SensorRecord> {
-    private LayoutInflater inflater;
+public class SensorDataAdapter extends ArrayAdapter<SensorData> {
+    private List<SensorData> dataList;
+    private Context context;
 
-    public SensorDataAdapter(Context context, List<DBManager.SensorRecord> data) {
-        super(context, 0, data);
-        inflater = LayoutInflater.from(context);
+    public SensorDataAdapter(Context context, List<SensorData> list) {
+        super(context, 0, list);
+        this.context = context;
+        this.dataList = list;
     }
 
     @Override
-    public View getView(int pos, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder holder;
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.item_sensor_data, parent, false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.item_sensor_data, parent, false);
+            holder = new ViewHolder();
+            holder.tvTime = convertView.findViewById(R.id.tv_time);
+            holder.tvType = convertView.findViewById(R.id.tv_type);
+            holder.tvValue = convertView.findViewById(R.id.tv_value);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
-        DBManager.SensorRecord item = getItem(pos);
-        TextView tvTime = convertView.findViewById(R.id.tv_time);
-        TextView tvType = convertView.findViewById(R.id.tv_type);
-        TextView tvVal = convertView.findViewById(R.id.tv_value);
-        tvTime.setText(item.time);
-        tvType.setText(item.type);
-        tvVal.setText(String.valueOf(item.value));
+        SensorData data = dataList.get(position);
+        holder.tvTime.setText(data.getTimestamp());
+        holder.tvType.setText(data.getSensorType() + "：");
+        holder.tvValue.setText(String.valueOf(data.getValue()));
         return convertView;
+    }
+
+    static class ViewHolder {
+        TextView tvTime, tvType, tvValue;
     }
 }

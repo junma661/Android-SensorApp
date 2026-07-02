@@ -2,96 +2,74 @@ package com.example.sensorrecorder;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DBManager {
-    public class SensorRecord {
-        String time;
-        String type;
-        float value;
-
-        public SensorRecord(String t, String ty, float v) {
-            time = t;
-            type = ty;
-            value = v;
-        }
-    }
-
-    private static final String DB_NAME = "sensor_db";
-    private static final int DB_VERSION = 1;
-    private static final String TABLE_DATA = "sensor_data";
-    private static final String COL_ID = "id";
-    private static final String COL_TIME = "record_time";
-    private static final String COL_TYPE = "sensor_type";
-    private static final String COL_VAL = "sensor_value";
-
     private DBHelper helper;
     private SQLiteDatabase db;
+    private SimpleDateFormat sdf;
 
-    private class DBHelper extends SQLiteOpenHelper {
-        public DBHelper(Context ctx) {
-            super(ctx, DB_NAME, null, DB_VERSION);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            String createSql = "CREATE TABLE " + TABLE_DATA + " (" +
-                    COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    COL_TIME + " TEXT," +
-                    COL_TYPE + " TEXT," +
-                    COL_VAL + " REAL)";
-            db.execSQL(createSql);
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {}
-
-        @Override
-        public void onDowngrade(SQLiteDatabase db, int oldV, int newV) {
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_DATA);
-            onCreate(db);
-        }
-    }
-
-    public DBManager(Context ctx) {
-        helper = new DBHelper(ctx);
-    }
-
-    public void insertData(String time, String type, float val) {
+    public DBManager(Context context) {
+        helper = new DBHelper(context);
         db = helper.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(COL_TIME, time);
-        cv.put(COL_TYPE, type);
-        cv.put(COL_VAL, val);
-        db.insert(TABLE_DATA, null, cv);
-        db.close();
+        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
     }
 
-    public List<SensorRecord> queryAll() {
-        List<SensorRecord> list = new ArrayList<>();
-        db = helper.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_DATA, null, null, null, null, null, COL_ID + " DESC");
-        int idxTime = cursor.getColumnIndex(COL_TIME);
-        int idxType = cursor.getColumnIndex(COL_TYPE);
-        int idxVal = cursor.getColumnIndex(COL_VAL);
-        while (cursor.moveToNext()) {
-            String t = cursor.getString(idxTime);
-            String ty = cursor.getString(idxType);
-            float v = cursor.getFloat(idxVal);
-            list.add(new SensorRecord(t, ty, v));
+    // 插入一条传感器数据
+    public long insertData(String sensorType, float value) {
+        ContentValues values = new ContentValues();
+        String timeStr = sdf.format(new Date());
+        values.put(DBHelper.COL_TIME, timeStr);
+        values.put(DBHelper.COL_TYPE, sensorType);
+        values.put(DBHelper.COL_VALUE, value);
+        return db.insert(DBHelper.TABLE_SENSOR_DATA, null, values);
+    }
+
+    // 查询全部数据
+    public List<SensorData> queryAll() {
+        List<SensorData> list = new ArrayList<>();
+        Cursor cursor = db.query(DBHelper.TABLE_SENSOR_DATA, null, null, null, null, null, DBHelper.COL_ID + " DESC");
+        if (cursor.moveToFirst()) {
+            do {
+                SensorData data = new SensorData();
+                data.setId(cursor.getLong(0));
+                data.setTimestamp(cursor.getString(1));
+                data.setSensorType(cursor.getString(2));
+                data.setValue(cursor.getFloat(3));
+                list.add(data);
+            } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
         return list;
     }
 
-    public void clearAll() {
-        db = helper.getWritableDatabase();
-        db.delete(TABLE_DATA, null, null);
-        db.close();
+    // 按传感器类型筛选
+    public List<SensorData> queryByType(String type) {
+        List<SensorData> list = new ArrayList<>();
+        Cursor cursor = db.query(DBHelper.TABLE_SENSOR_DATA, null,
+                DBHelper.COL_TYPE + "=?", new String[]{type},
+                null, null, DBHelper.COL_ID + " DESC");
+        if (cursor.moveToFirst()) {
+            do {
+                SensorData data = new SensorData();
+                data.setId(cursor.getLong(0));
+                data.setTimestamp(cursor.getString(1));
+                data.setSensorType(cursor.getString(2));
+                data.setValue(cursor.getFloat(3));
+                list.add(data);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return list;
+    }
+
+    public void close() {
+        if (db != null) db.close();
     }
 }
