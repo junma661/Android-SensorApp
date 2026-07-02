@@ -30,14 +30,3 @@
 ## 五、APK 下载地址
 https://github.com/junma661/Android-SensorApp
 
-### 2. 仓库内置安装包
-/app/release/app-release.apk
-
-## 六、编译运行步骤
-1. 克隆本项目到本地，使用 Android Studio 打开根目录
-2. 等待 Gradle 自动同步所有依赖
-3. 连接安卓真机/模拟器，授予「通知、存储」权限
-4. 点击顶部 Run 按钮，编译并安装 App
-5. 进入首页点击「开始采集」即可正常使用全部功能
-
-## 七、项目目录结构
