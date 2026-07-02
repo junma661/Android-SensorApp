@@ -66,7 +66,6 @@ public class SensorCollectService extends Service implements SensorEventListener
         startCollect();
     }
 
-    // 读取采样周期 + 光线告警阈值
     private void loadConfig() {
         SharedPreferences sp = getSharedPreferences(SettingActivity.SP_NAME, Context.MODE_PRIVATE);
         period = sp.getLong(SettingActivity.KEY_PERIOD, 1000);
@@ -80,7 +79,6 @@ public class SensorCollectService extends Service implements SensorEventListener
             mSensorManager.registerListener(this, tempSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
-    // 启动后台采集
     public void startCollect() {
         if (!isRunning) {
             isRunning = true;
@@ -89,7 +87,6 @@ public class SensorCollectService extends Service implements SensorEventListener
         }
     }
 
-    // 停止采集
     public void stopCollect() {
         isRunning = false;
         handler.removeCallbacks(saveTask);
