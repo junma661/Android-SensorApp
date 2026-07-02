@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import android.content.SharedPreferences;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tvStatus, tvLight, tvTemp;
@@ -61,6 +62,15 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.POST_NOTIFICATIONS},
                     100);
         }
+// MainActivity onCreate 末尾添加
+// 读取后台采集开关，自动恢复采集状态
+        SharedPreferences sp = getSharedPreferences(SettingActivity.SP_NAME, MODE_PRIVATE);
+        boolean autoStartCollect = sp.getBoolean(SettingActivity.KEY_BG_ENABLE, false);
+        if(autoStartCollect){
+            Intent autoServiceIntent = new Intent(this, SensorCollectService.class);
+            startService(autoServiceIntent);
+        }
+
     }
 
     private void startRefresh() {

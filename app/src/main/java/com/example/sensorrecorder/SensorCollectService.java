@@ -62,6 +62,8 @@ public class SensorCollectService extends Service implements SensorEventListener
         dbManager = new DBManager(this);
         loadConfig();
         registerSensor();
+        // 服务启动直接自动开始采集（由设置开关控制服务启停）
+        startCollect();
     }
 
     // 读取采样周期 + 光线告警阈值
