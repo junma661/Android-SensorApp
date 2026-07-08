@@ -16,9 +16,9 @@
         android:id="@+id/tv_light"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="光线传感器：-- lx"
         android:layout_marginTop="10dp"
-        android:textSize="18sp"/>
+        android:text="光线传感器：-- lx"
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/tv_temp"
@@ -60,8 +60,8 @@
     <Button
         android:id="@+id/btn_setting"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="设置"
-        android:layout_marginTop="10dp"/>
+        android:layout_height="53dp"
+        android:layout_marginTop="10dp"
+        android:text="设置" />
 
 </LinearLayout>

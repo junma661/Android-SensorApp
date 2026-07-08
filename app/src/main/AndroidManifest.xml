@@ -2,17 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.sensorrecorder">
 
-    <!-- 通知权限（光线超限告警 + CSV导出成功通知） -->
+    <!-- 通知权限：光线超限告警、CSV导出完成通知（Android13+） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <!-- 后台服务权限 -->
+    <!-- 前台后台采集服务权限 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
-    <!-- CSV文件导出存储权限 -->
-    <!-- Android 13及以下读写外部存储 -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <!-- Android 11~12 完整文件访问（可选，解决部分机型下载目录写入失败） -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" android:maxSdkVersion="34"/>
+    <!-- 外部存储读写（仅适配Android12及以下） -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <!-- 全文件访问权限，解决低版本导出文件失败 -->
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="34"/>
 
     <application
         android:allowBackup="true"
@@ -22,7 +27,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Sensorrecorder">
 
-        <!-- 主启动页面 -->
+        <!-- 实验要求：ContentProvider 数据共享组件 -->
+        <provider
+            android:name=".SensorContentProvider"
+            android:authorities="com.example.sensorrecorder.provider"
+            android:exported="true"/>
+
+        <!-- 主启动界面 -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -37,7 +48,7 @@
             android:name=".SettingActivity"
             android:exported="false"/>
 
-        <!-- 历史列表页面（CSV导出功能所在页面） -->
+        <!-- 历史数据页面（列表筛选、CSV导出、ContentProvider验证） -->
         <activity
             android:name=".DataListActivity"
             android:exported="false"/>
